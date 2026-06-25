@@ -5,22 +5,18 @@ import random
 
 
 class Raindrop:
-    def __init__(self, screen, x, y):
+    def __init__(self, screen: pygame.Surface, x, y):
         self.screen = screen
         self.x = x
         self.y = y
         self.speed = random.randint(5, 15)
 
     def move(self):
-        """ Move the self.y value of the Raindrop down the screen (y increase) at the self.speed. """
-        # TODO 11: Change the  y  position of this Raindrop by its speed.
-        pass
+        self.y += self.speed
 
     def off_screen(self):
-        """ Returns true if the Raindrop y value is not shown on the screen, otherwise false. """
-        # Note: this will be used for testing, but not used in the final version of the code for the sake of simplicity.
-        # TODO 13: Return  True  if the  y  position of this Raindrop is greater than 800.
-        pass
+        return self.y > self.screen.get_height()
+
 
     def draw(self):
         pygame.draw.line(self.screen, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), (self.x, self.y), (self.x, self.y + 5), 2)
@@ -108,8 +104,9 @@ def main():
         screen.fill((255, 255, 255))
 
         # --- begin area of test_drop code that will be removed later
-        # TODO 12: As a temporary test, move test_drop
-        # TODO 14: As a temporary test, check if test_drop is off screen, if so reset the y position to 10
+        test_drop.move()
+        if test_drop.off_screen():
+            test_drop.y = 10
         test_drop.draw()
         # TODO 20: As a temporary test, check if test_drop is hitting Mike (or Alyssa), if so set their last_hit_time
         # TODO 22: Remove the code that reset the y of the test_drop when off_screen()
