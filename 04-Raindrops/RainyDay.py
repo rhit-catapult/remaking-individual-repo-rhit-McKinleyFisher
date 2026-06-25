@@ -17,10 +17,9 @@ class Raindrop:
     def off_screen(self):
         return self.y > self.screen.get_height()
 
-
     def draw(self):
         pygame.draw.line(self.screen, pygame.Color("Dark Blue"), (self.x, self.y), (self.x, self.y + 5), 2)
-        # (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)),
+
 
 class Hero:
     def __init__(self, screen: pygame.Surface, x, y, with_umbrella_filename, without_umbrella_filename):
@@ -32,7 +31,7 @@ class Hero:
         self.last_hit_time = 0
 
     def draw(self):
-        if time.time() > self.last_hit_time + 1:
+        if time.time() > self.last_hit_time + 0.5:
             self.screen.blit(self.image_no_umbrella, (self.x, self.y))
         else:
             self.screen.blit(self.image_umbrella, (self.x, self.y))
@@ -54,12 +53,10 @@ class Cloud:
        self.screen.blit(self.image, (self.x, self.y))
 
     def rain(self):
-        """ Adds a Raindrop to the array of raindrops so that it looks like the Cloud is raining. """
-        # TODO 28: Append a new Raindrop to this Cloud's list of raindrops,
-        #     where the new Raindrop starts at:
-        #       - x is a random integer between this Cloud's x and this Cloud's x + 300.
-        #       - y is this Cloud's y + 100.
-        pass
+        drop_x = random.randint(self.x + 3, self.x + self.image.get_width() - 3)
+        drop_y = self.y + self.image.get_height() - 5
+        new_raindrop = Raindrop(self.screen, drop_x, drop_y)
+        self.raindrops.append(new_raindrop)
 
 
 def main():
@@ -67,7 +64,6 @@ def main():
     pygame.display.set_caption("Rainy Day")
     screen = pygame.display.set_mode((1000, 600))
     clock = pygame.time.Clock()
-    test_drop = Raindrop(screen, 320, 10)
     mike = Hero(screen, 200, 400, "Mike_umbrella.png", "Mike.png")
     alyssa = Hero(screen, 700, 400, "Alyssa_umbrella.png", "Alyssa.png")
     cloud = Cloud(screen, 300, 50, "cloud.png")
@@ -78,25 +74,31 @@ def main():
             if event.type == pygame.QUIT:
                 sys.exit()
 
-        # TODO 27: Inside the game loop (AFTER the events loop above), get the list of keys that are currently pressed.
-        #     Arrange so that the Cloud moves:
-        #       5 pixels (or 10 pixels) to the right if the Right Arrow key (pygame.K_RIGHT) is pressed.
-        #       5 pixels (or 10 pixels) to the left  if the Left  Arrow key (pygame.K_LEFT)  is pressed.
-        #       5 pixels (or 10 pixels) up           if the Up    Arrow key (pygame.K_UP)    is pressed.
-        #       5 pixels (or 10 pixels) down         if the Down  Arrow key (pygame.K_DOWN)  is pressed.
-        # DISCUSS: If you want something to happen once per key press, put it in the events loop above
-        #          If you want something to continually happen while holding the key, put it after the events loop.
+        pressed_keys = pygame.key.get_pressed()
+        cloud_speed = 10
+        if pressed_keys[pygame.K_UP]:
+            cloud.y -= cloud_speed
+        if pressed_keys[pygame.K_DOWN]:
+            cloud.y += cloud_speed
+        if pressed_keys[pygame.K_RIGHT]:
+            cloud.x += cloud_speed
+        if pressed_keys[pygame.K_LEFT]:
+            cloud.x -= cloud_speed
 
         screen.fill((255, 255, 255))
         cloud.draw()
-
-        # TODO 29: Remove the temporary testdrop code from this function and refactor it as follows:
-        # TODO: Make the Cloud "rain", then:
-        # TODO    For each Raindrop in the Cloud's list of raindrops:
-            #       - move the Raindrop.
-            #       - draw the Raindrop.
-            # TODO  30: if the Hero (Mike or Alyssa) is hit by a Raindrop, set the Hero's last_time_hit to the current time.
-            # Optional  - if the Raindrop is off the screen or hitting a Hero, remove it from the Cloud's list of raindrops.
+        cloud.rain()
+        for raindrop in cloud.raindrops:
+            raindrop.move()
+            raindrop.draw()
+            if mike.hit_by(raindrop):
+                mike.last_hit_time = time.time()
+                cloud.raindrops.remove(raindrop)
+            if alyssa.hit_by(raindrop):
+                alyssa.last_hit_time = time.time()
+                cloud.raindrops.remove(raindrop)
+            if raindrop.off_screen():
+                cloud.raindrops.remove(raindrop)
 
         mike.draw()
         alyssa.draw()
